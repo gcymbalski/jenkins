@@ -263,9 +263,15 @@ EOH
 
       # Compute some versions; Parse them as `Gem::Version` instances for easy
       # comparisons.
-      installed_version = local_plugin_data ? Gem::Version.new(local_plugin_data['plugin_version']) : nil
-      latest_version    = Gem::Version.new(remote_plugin_data['version'])
-      desired_version   = (plugin_version.to_sym == :latest) ? latest_version : Gem::Version.new(plugin_version)
+      begin
+        installed_version = local_plugin_data ? Gem::Version.new(local_plugin_data['plugin_version']) : nil
+        latest_version    = Gem::Version.new(remote_plugin_data['version'])
+        desired_version   = (plugin_version.to_sym == :latest) ? latest_version : Gem::Version.new(plugin_version)
+      rescue ArgumentError
+        installed_version = local_plugin_data ? local_plugin_data['plugin_version'] : nil
+        latest_version    = remote_plugin_data['version']
+        desired_version   = (plugin_version.to_sym == :latest) ? latest_version : plugin_version
+      end
 
       # Brute-force install all dependencies
       if opts[:install_deps] && remote_plugin_data['dependencies'].any?
